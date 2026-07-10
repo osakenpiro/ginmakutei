@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>銀幕亭 — 時めぐり</title>
+<meta property="og:title" content="銀幕亭 — 時めぐり">
+<meta property="og:description" content="映画がむかし、落語だったら。ブラウザが演じる新作落語、一席。">
+<meta property="og:url" content="https://osakenpiro.github.io/ginmakutei/">
+<meta property="og:type" content="website">
+<style>
+:root{
+  --bg-top:#141126;
+  --bg-bottom:#1e1936;
+  --gold:#e8b93e;
+  --vermilion:#c0392b;
+  --ink:#f2ead9;
+  --ink-dim:#cfc6df;
+  --panel:#241f3d;
+  --panel-line:rgba(232,185,62,0.35);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  min-height:100vh;
+  background:linear-gradient(180deg,var(--bg-top) 0%,var(--bg-bottom) 100%);
+  color:var(--ink);
+  font-family:"Yu Mincho","Hiragino Mincho ProN",serif;
+  line-height:1.7;
+}
+.banner{
+  background:var(--vermilion);
+  color:#fff;
+  text-align:center;
+  padding:10px 16px;
+  font-size:0.9rem;
+}
+.wrap{
+  max-width:760px;
+  margin:0 auto;
+  padding:0 16px 110px;
+}
+header{text-align:center;padding:32px 8px 12px;}
+header h1{
+  margin:0;
+  font-size:2.6rem;
+  letter-spacing:0.12em;
+  color:var(--gold);
+  text-shadow:0 0 18px rgba(232,185,62,0.35);
+}
+header .subtitle{
+  margin:8px 0 0;
+  color:var(--ink-dim);
+  font-size:0.95rem;
+  border-bottom:1px solid var(--vermilion);
+  display:inline-block;
+  padding-bottom:6px;
+}
+.stage-area{
+  display:flex;
+  flex-direction:row-reverse;
+  gap:12px;
+  margin:24px 0;
+  align-items:stretch;
+}
+.mekuri{
+  writing-mode:vertical-rl;
+  text-orientation:upright;
+  background:#f5f0e6;
+  color:#1a1420;
+  font-weight:900;
+  font-size:1.5rem;
+  letter-spacing:0.2em;
+  padding:16px 10px;
+  border-radius:4px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+.stage{
+  flex:1;
+  position:relative;
+  min-height:130px;
+  border-radius:10px;
+  background:linear-gradient(180deg,#4a3524,#6b4f34);
+  box-shadow:inset 0 6px 16px rgba(0,0,0,0.45);
+  overflow:hidden;
+}
+.stage::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:repeating-linear-gradient(90deg, rgba(0,0,0,0.08) 0 3px, transparent 3px 30px);
+}
+.zabuton{
+  position:absolute;
+  left:50%;
+  bottom:14px;
+  transform:translateX(-50%);
+  width:68%;
+  height:30px;
+  border-radius:50%;
+  background:radial-gradient(ellipse at center, #7a4088, #4a2854);
+  box-shadow:0 0 0 5px rgba(232,185,62,0.18), 0 8px 14px rgba(0,0,0,0.4);
+}
+@media (max-width:600px){
+  .stage-area{flex-direction:column;}
+  .mekuri{
+    writing-mode:horizontal-tb;
+    font-size:1.3rem;
+    padding:10px;
+  }
+}
+.script-view{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  padding:8px 0 32px;
+}
+.line{
+  padding:10px 14px;
+  border-radius:8px;
+  border-left:4px solid transparent;
+  cursor:pointer;
+  transition:background 0.3s ease, border-color 0.3s ease;
+}
+.line:hover{background:rgba(255,255,255,0.03);}
+.line .label{
+  display:inline-block;
+  padding:3px 12px;
+  margin-right:10px;
+  border-radius:999px;
+  font-size:0.8rem;
+  font-weight:700;
+  color:#201a30;
+  vertical-align:middle;
+}
+.line .text{
+  font-size:1.08rem;
+  vertical-align:middle;
+}
+.line.sfx{
+  text-align:center;
+  color:#9b93ab;
+  font-style:italic;
+  font-size:0.92rem;
+  cursor:default;
+  padding:4px 14px;
+}
+.line.sfx:hover{background:transparent;}
+.line.current{
+  border-left-color:var(--gold);
+  background:rgba(232,185,62,0.1);
+}
+details{
+  margin:20px 0;
+  background:var(--panel);
+  border:1px solid var(--panel-line);
+  border-radius:8px;
+  padding:4px 16px;
+}
+details summary{
+  cursor:pointer;
+  padding:12px 0;
+  font-weight:700;
+  color:var(--gold);
+  list-style:none;
+}
+details summary::-webkit-details-marker{display:none;}
+details summary::before{
+  content:"▶ ";
+  color:var(--vermilion);
+}
+details[open] summary::before{content:"▼ ";}
+.kojo p{color:var(--ink-dim);font-size:0.95rem;padding-bottom:14px;}
+.voice-room-body{padding-bottom:16px;}
+.voice-warning{
+  background:rgba(192,57,43,0.2);
+  border:1px solid var(--vermilion);
+  padding:8px 12px;
+  border-radius:6px;
+  font-size:0.85rem;
+}
+.vr-row{display:flex;align-items:center;gap:10px;margin:10px 0;flex-wrap:wrap;}
+.vr-row label{min-width:140px;font-size:0.9rem;color:var(--ink-dim);}
+.vr-row select, .vr-row input[type=range]{flex:1;min-width:120px;}
+.voice-room-content{margin-top:8px;border-top:1px solid var(--panel-line);padding-top:8px;}
+.voice-row{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px;
+  padding:8px 0;
+  border-bottom:1px dashed rgba(255,255,255,0.08);
+}
+.voice-row-name{min-width:64px;font-weight:700;}
+.voice-row label{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:0.82rem;
+  color:var(--ink-dim);
+  flex:1;
+  min-width:130px;
+}
+.voice-row input[type=range]{flex:1;}
+#reset-voice-room{
+  margin-top:12px;
+  min-height:44px;
+  padding:0 16px;
+  border-radius:8px;
+  border:1px solid var(--panel-line);
+  background:#2c2650;
+  color:var(--ink);
+  cursor:pointer;
+  font-family:inherit;
+}
+footer{
+  text-align:center;
+  padding:24px 8px 12px;
+  color:var(--ink-dim);
+  font-size:0.85rem;
+}
+footer a{color:var(--gold);}
+.share-row{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  margin-top:12px;
+  flex-wrap:wrap;
+}
+.share-row button{
+  min-height:44px;
+  padding:0 18px;
+  border-radius:8px;
+  border:1px solid var(--panel-line);
+  background:var(--panel);
+  color:var(--ink);
+  cursor:pointer;
+  font-family:inherit;
+  font-size:0.9rem;
+}
+.controls-bar{
+  position:fixed;
+  left:0;right:0;bottom:0;
+  background:rgba(20,17,38,0.97);
+  border-top:1px solid var(--panel-line);
+  padding:10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+  display:flex;
+  align-items:center;
+  gap:10px;
+  z-index:100;
+}
+.controls-bar button{
+  min-width:44px;
+  min-height:44px;
+  border-radius:8px;
+  border:1px solid var(--panel-line);
+  background:#241f3d;
+  color:var(--ink);
+  font-size:1rem;
+  cursor:pointer;
+  font-family:inherit;
+}
+.controls-bar button:active{background:#362d5c;}
+.progress{
+  margin-left:auto;
+  font-size:0.85rem;
+  color:var(--ink-dim);
+  white-space:nowrap;
+}
+</style>
+</head>
+<body>
+<div id="no-speech-banner" class="banner" hidden>このブラウザは声が出せません——目でお楽しみください</div>
+<div class="wrap">
+  <header>
+    <h1>銀幕亭</h1>
+    <p class="subtitle">映画がむかし、落語だったら</p>
+  </header>
+
+  <div class="stage-area">
+    <div class="mekuri">時めぐり</div>
+    <div class="stage"><div class="zabuton"></div></div>
+  </div>
+
+  <div id="script-view" class="script-view"></div>
+
+  <details class="kojo">
+    <summary>口上（この企画について）</summary>
+    <p>活動写真——映画というものが日本に渡ってくるよりずっと前から、寄席の高座では噺家が一人で恋も冒険も怪異も演じ分けておりました。いわば落語は、映画以前の映画でございます。本作「時めぐり」は、現代映画でお馴染みの「同じ一日がぐるぐる回る」というジャンルの型だけを江戸に借り受けたオリジナルの新作落語で、特定の映画作品を翻案したものではございません。古典の名作「時そば」の骨格——数を数えて刻を確かめるという趣向——には深く敬意を払いつつ、まったく別の噺として仕立て直した、いわば換骨奪胎の一席にございます。</p>
+  </details>
+
+  <details class="voice-room">
+    <summary>声の楽屋</summary>
+    <div class="voice-room-body">
+      <p id="voice-warning" class="voice-warning" hidden>日本語の音声が見つかりませんでした。利用できる音声をすべて表示しています。</p>
+      <div class="vr-row">
+        <label for="voice-select">声を選ぶ</label>
+        <select id="voice-select"></select>
+      </div>
+      <div class="vr-row">
+        <label for="master-rate">マスター速度（<span id="master-rate-val">1.00</span>）</label>
+        <input type="range" id="master-rate" min="0.6" max="1.4" step="0.01" value="1">
+      </div>
+      <div id="voice-room-content" class="voice-room-content"></div>
+      <button id="reset-voice-room" type="button">初期値に戻す</button>
+    </div>
+  </details>
+
+  <footer>
+    <p>銀幕亭 produced by osakenpiro ｜ #全人類UX改善計画</p>
+    <p><a href="https://osakenpiro.github.io/boku-no-wakusei/" target="_blank" rel="noopener">僕の惑星</a></p>
+    <div class="share-row">
+      <button id="share-x" type="button">Xでシェア</button>
+      <button id="copy-url" type="button">URLをコピー</button>
+    </div>
+  </footer>
+</div>
+
+<div class="controls-bar">
+  <button id="btn-play" type="button" aria-label="開演">▶開演</button>
+  <button id="btn-pause" type="button" aria-label="中入り">⏸中入り</button>
+  <button id="btn-stop" type="button" aria-label="お開き">⏹お開き</button>
+  <div id="progress" class="progress">1 / 83 行</div>
+</div>
+
+<script>
+const CAST = {"語り": {"pitch": 1.0, "rate": 1.0, "color": "#c9b18c"}, "清兵衛": {"pitch": 0.7, "rate": 0.95, "color": "#e8a03e"}, "八五郎": {"pitch": 1.3, "rate": 1.12, "color": "#7fc4e8"}, "木戸番": {"pitch": 0.85, "rate": 0.8, "color": "#a8d08d"}, "二人": {"pitch": 1.05, "rate": 1.1, "color": "#e87f9c"}};
+const SCRIPT = [{"s":"語り","t":"え〜、ようこそのお運びで。銀幕亭、開演でございます。"},{"s":"語り","t":"活動写真——映画てえものがまだ無かった時分、江戸の連中は寄席で映画を観ておりました。噺家が一人、扇子一本で、恋愛ものから怪獣ものまでやっちまう。"},{"s":"語り","t":"本日はその逆輸入でございます。映画でお馴染みの「同じ一日がぐるぐる回る」——あれを、江戸に持って参りました。"},{"s":"語り","t":"もっとも皆さま、覚えがございましょう。二度寝をすると、さっきの夢の続きが始まる。あれが人類最初の繰り返しもの、でございます。"},{"s":"語り","t":"ご存じない方のために申し上げますと、江戸の夜鳴きそばは一杯十六文、真夜中の鐘は九つと、相場が決まっております。"},{"s":"※","t":"（拍子木——チョーン）"},{"s":"語り","t":"ところは江戸、夜も更けて。夜鳴きそばの屋台をかつぐ清兵衛さん、今夜も辻に灯りをともしております。"},{"s":"清兵衛","t":"さぁて、冷えてきやがった。こういう晩ぁ、そばが売れる。"},{"s":"※","t":"（遠くで鐘の音。ゴーン、ゴーン——九つ）"},{"s":"清兵衛","t":"九つか。あとひと回りしたら帰るとするか。"},{"s":"八五郎","t":"おう親方、やってるかい。熱いのを一枚、しっぽくで頼まぁ。"},{"s":"清兵衛","t":"へい、毎度。……あいよ、お待ち。"},{"s":"八五郎","t":"ずずっ……うめえ！　汁が体に沁みらぁ。んじゃ勘定だ。ひい、ふう、みい、よう……"},{"s":"語り","t":"八五郎さん、十六文をきっちり払って、鼻歌まじりに帰ってゆきます。"},{"s":"清兵衛","t":"ありがとうござい。……さて、そろそろ仕舞うか。"},{"s":"※","t":"（犬の遠吠え。また鐘の音——九つ）"},{"s":"清兵衛","t":"おや、また九つだ。鐘撞きの爺さん、居眠りして撞き直したか。"},{"s":"八五郎","t":"おう親方、やってるかい。熱いのを一枚、しっぽくで頼まぁ。"},{"s":"清兵衛","t":"へい、毎度……って、おめえさん、たった今食ったろ。"},{"s":"八五郎","t":"なにを言ってやんでえ。今夜はまだ一杯も手繰っちゃいねえよ。"},{"s":"清兵衛","t":"冗談言っちゃいけねえ。ほら、おめえの丼が……あれ？　洗った覚えはねえのに、きれいなもんだ。"},{"s":"八五郎","t":"親方、疲れてるんだよ。いいから一枚。"},{"s":"清兵衛","t":"……へ、へい。お待ち。"},{"s":"八五郎","t":"ずずっ……うめえ！　汁が体に沁みらぁ。"},{"s":"清兵衛","t":"（こいつぁおかしい。啜り方から台詞まで、寸分違わねえ）"},{"s":"八五郎","t":"んじゃ勘定だ。ひい、ふう、みい——"},{"s":"清兵衛","t":"よう、いつ、むう、なな、や、だろ。先に言ってやらぁ。"},{"s":"八五郎","t":"な、なんで俺の数え方がわかるんだ。"},{"s":"清兵衛","t":"二度目だからだよ！"},{"s":"語り","t":"そうして三度目の九つ。清兵衛さん、もう確信いたしました。夜が、明けない。"},{"s":"清兵衛","t":"よし、こうなったら屋台をたたんで長屋に帰って、布団かぶって寝ちまえば——"},{"s":"※","t":"（鐘の音——九つ）"},{"s":"清兵衛","t":"……気がつきゃ辻に立って、屋台をかついでる！　なんでだよ！"},{"s":"清兵衛","t":"なら今夜はそばを打たねえ。売り物がなけりゃ、あいつも来ようが——"},{"s":"八五郎","t":"おう親方、やってるかい。"},{"s":"清兵衛","t":"来やがった！　屋台も出してねえのに、どっから湧いた！"},{"s":"八五郎","t":"いや、匂いがしたもんだからよ。"},{"s":"清兵衛","t":"幻の匂いを嗅ぐな！"},{"s":"語り","t":"こうなれば手を替え品を替え。次の九つ、清兵衛さん、注文される前に丼を突き出します。"},{"s":"清兵衛","t":"ほらよ、今夜は花巻だ！　しっぽくとは言わせねえ！"},{"s":"八五郎","t":"おっ、悪いね親方。……ずずっ、うめえ！　汁が体に沁みらぁ。"},{"s":"清兵衛","t":"種を替えても、そこは変わらねえのか！"},{"s":"八五郎","t":"？　なんの話でえ。"},{"s":"清兵衛","t":"八っつぁん、落ち着いて聞いてくれ。おめえと俺ぁ、同じ晩をもう何べんもぐるぐる回ってるんだ。"},{"s":"八五郎","t":"……親方、そばの湯気ぇ吸いすぎだよ。明日にでも医者に診てもらいな。"},{"s":"清兵衛","t":"その明日が来ねえから相談してんだよ！"},{"s":"語り","t":"信じてもらえないのもお約束でございます。ならばと清兵衛さん、一計を案じました。"},{"s":"清兵衛","t":"そうだ、先に銭をもらっちまえばいい。おい八っつぁん、うちは今夜から先払いだ。十六文、耳を揃えて食う前に！"},{"s":"八五郎","t":"へえ、変わった商いだね。ひい、ふう、みい……"},{"s":"※","t":"（鐘の音——九つ）"},{"s":"清兵衛","t":"早え早え早え！　まだ「みい」までしか数えてねえのに晩が締まった！　却って悪くなってるじゃねえか！"},{"s":"語り","t":"橋を渡って逆へ逆へと歩いてみても、戻ってくるのは元の辻。夜という夜の、袋小路でございます。"},{"s":"清兵衛","t":"おい八っつぁん、今なん時だい。"},{"s":"八五郎","t":"へえ、九つで。"},{"s":"清兵衛","t":"いつ聞いても九つだ。……夜の帳尻が、合ってねえ。"},{"s":"語り","t":"ふと清兵衛さん、屋台の帳面をつけてみます。"},{"s":"清兵衛","t":"今夜の売上……一杯十六文が一枚。数えて、ひい、ふう、みい……十五文。おい、一文足りねえ。"},{"s":"清兵衛","t":"……待てよ。思い出した。一番はじめの晩だ。こいつ、勘定の途中で妙なことを聞きやがった。"},{"s":"八五郎","t":"（回想）ひい、ふう、みい、よう、いつ、むう、なな、や——親方、今なん時だい？"},{"s":"清兵衛","t":"（回想）へえ、九つで。"},{"s":"八五郎","t":"（回想）とお、じゅういち、じゅうに、じゅうさん……"},{"s":"清兵衛","t":"あん時だ！　俺が「九つ」って答えたもんだから、勘定に紛れて一文飛んだ！"},{"s":"清兵衛","t":"銭の勘定と時の勘定、江戸の夜はどっちも鐘で締める。一文欠けた分だけ夜の締まりがゆるんで、九つのところでつっかえてやがるんだ。"},{"s":"清兵衛","t":"……夜ってのは、明けるか明けねえかの二つっきりじゃねえんだなあ。締まりが悪いと、こうして半端に残る。"},{"s":"語り","t":"理屈が通ったかどうかは存じませんが、当人は大きくうなずいております。さあ、次の九つ。清兵衛さん、待ち構えております。"},{"s":"※","t":"（鐘の音——九つ）"},{"s":"八五郎","t":"おう親方、やってるかい。熱いのを——"},{"s":"清兵衛","t":"しっぽくだろ。とっくに茹だってらぁ。食え食え。"},{"s":"八五郎","t":"気味が悪いくれえ話が早えな。……ずずっ、うめえ！　んじゃ勘定だ。ひい、ふう、みい、よう、いつ、むう、なな、や——親方、今なん時でえ？"},{"s":"清兵衛","t":"その手は食わねえ！　続きを数えな。「や」の次！"},{"s":"八五郎","t":"え？　……ここのつ？"},{"s":"清兵衛","t":"俺に言わせず、おめえが言うんだ。それから？"},{"s":"八五郎","t":"とお。"},{"s":"※","t":"（鐘の音が、ゆっくり——十）"},{"s":"清兵衛","t":"鳴った……十だ！　鐘が十を打ちやがった！"},{"s":"語り","t":"東の空がじわりと白んで、烏がカア。長い長い夜が、ようやく明けたのでございます。"},{"s":"八五郎","t":"なんでえ、朝じゃねえか。……おかしいな、一杯しか手繰ってねえのに、妙に腹がくちい。"},{"s":"清兵衛","t":"そりゃ九晩分だ。……いや、こっちの話だ。ほら、今朝は釣りを一文おまけしとくよ。"},{"s":"八五郎","t":"おや、多いよ親方。"},{"s":"清兵衛","t":"取っときな。夜の潤滑油ってやつだ。また止まられちゃ、かなわねえ。"},{"s":"木戸番","t":"お早うござい。いい朝だねえ。……時に親方、いま、なん時だい？"},{"s":"二人","t":"聞くなーッ！！"},{"s":"※","t":"（拍子木——チョーン。お後がよろしいようで）"}];
+
+const STORAGE_KEY = 'ginmakutei-v1';
+const SHARE_TEXT = "銀幕亭『時めぐり』——映画がむかし、落語だったら。ブラウザが一席演じます";
+const PAGE_URL = "https://osakenpiro.github.io/ginmakutei/";
+
+const hasSpeechSynthesis = ('speechSynthesis' in window) && (typeof SpeechSynthesisUtterance !== 'undefined');
+
+let settings = loadSettings();
+let castSettings = {};
+Object.keys(CAST).forEach(function (name) {
+  const saved = settings.cast && settings.cast[name];
+  castSettings[name] = {
+    pitch: (saved && typeof saved.pitch === 'number') ? saved.pitch : CAST[name].pitch,
+    rate: (saved && typeof saved.rate === 'number') ? saved.rate : CAST[name].rate,
+    color: CAST[name].color
+  };
+});
+let masterRate = (typeof settings.masterRate === 'number') ? settings.masterRate : 1.0;
+
+let voicesList = [];
+let audioCtx = null;
+let playing = false;
+let userPaused = false;
+let currentIndex = 0;
+let keepAliveInterval = null;
+let advanceTimer = null;
+let pendingNextIndex = null;
+let speechGen = 0;
+
+function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') return parsed;
+    }
+  } catch (e) {}
+  return {};
+}
+
+function saveSettings() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  } catch (e) {}
+}
+
+function persistCastSettings() {
+  settings.cast = {};
+  Object.keys(castSettings).forEach(function (name) {
+    settings.cast[name] = { pitch: castSettings[name].pitch, rate: castSettings[name].rate };
+  });
+  saveSettings();
+}
+
+function renderScript() {
+  const container = document.getElementById('script-view');
+  const frag = document.createDocumentFragment();
+  SCRIPT.forEach(function (line, i) {
+    const div = document.createElement('div');
+    div.className = 'line' + (line.s === '※' ? ' sfx' : '');
+    div.dataset.index = String(i);
+    if (line.s === '※') {
+      div.textContent = line.t;
+    } else {
+      const label = document.createElement('span');
+      label.className = 'label';
+      label.textContent = line.s;
+      const info = CAST[line.s];
+      label.style.backgroundColor = info ? info.color : '#c9b18c';
+      const textSpan = document.createElement('span');
+      textSpan.className = 'text';
+      textSpan.textContent = line.t;
+      div.appendChild(label);
+      div.appendChild(textSpan);
+    }
+    frag.appendChild(div);
+  });
+  container.appendChild(frag);
+}
+
+function renderVoiceRoom() {
+  const container = document.getElementById('voice-room-content');
+  container.innerHTML = '';
+  Object.keys(CAST).forEach(function (name) {
+    const row = document.createElement('div');
+    row.className = 'voice-row';
+
+    const nameLabel = document.createElement('span');
+    nameLabel.className = 'voice-row-name';
+    nameLabel.textContent = name;
+    nameLabel.style.color = CAST[name].color;
+
+    const pitchLabel = document.createElement('label');
+    const pitchSpan = document.createElement('span');
+    pitchSpan.textContent = '高さ ' + castSettings[name].pitch.toFixed(2);
+    const pitchInput = document.createElement('input');
+    pitchInput.type = 'range';
+    pitchInput.min = '0.5';
+    pitchInput.max = '2.0';
+    pitchInput.step = '0.01';
+    pitchInput.value = String(castSettings[name].pitch);
+    pitchInput.addEventListener('input', function () {
+      const v = parseFloat(pitchInput.value);
+      castSettings[name].pitch = v;
+      pitchSpan.textContent = '高さ ' + v.toFixed(2);
+      persistCastSettings();
+    });
+    pitchLabel.appendChild(pitchSpan);
+    pitchLabel.appendChild(pitchInput);
+
+    const rateLabel = document.createElement('label');
+    const rateSpan = document.createElement('span');
+    rateSpan.textContent = '速さ ' + castSettings[name].rate.toFixed(2);
+    const rateInput = document.createElement('input');
+    rateInput.type = 'range';
+    rateInput.min = '0.6';
+    rateInput.max = '1.6';
+    rateInput.step = '0.01';
+    rateInput.value = String(castSettings[name].rate);
+    rateInput.addEventListener('input', function () {
+      const v = parseFloat(rateInput.value);
+      castSettings[name].rate = v;
+      rateSpan.textContent = '速さ ' + v.toFixed(2);
+      persistCastSettings();
+    });
+    rateLabel.appendChild(rateSpan);
+    rateLabel.appendChild(rateInput);
+
+    row.appendChild(nameLabel);
+    row.appendChild(pitchLabel);
+    row.appendChild(rateLabel);
+    container.appendChild(row);
+  });
+}
+
+function updateProgress() {
+  document.getElementById('progress').textContent = (currentIndex + 1) + ' / ' + SCRIPT.length + ' 行';
+}
+
+function highlightLine(idx) {
+  const prev = document.querySelector('.line.current');
+  if (prev) prev.classList.remove('current');
+  const el = document.querySelector('.line[data-index="' + idx + '"]');
+  if (el) {
+    el.classList.add('current');
+    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+}
+
+function clearHighlight() {
+  const prev = document.querySelector('.line.current');
+  if (prev) prev.classList.remove('current');
+}
+
+function loadVoices() {
+  voicesList = speechSynthesis.getVoices();
+  populateVoiceSelect();
+}
+
+function populateVoiceSelect() {
+  const select = document.getElementById('voice-select');
+  const warn = document.getElementById('voice-warning');
+  const jaVoices = voicesList.filter(function (v) {
+    return v.lang && v.lang.toLowerCase().startsWith('ja');
+  });
+  const list = jaVoices.length > 0 ? jaVoices : voicesList;
+  const prevValue = select.value || settings.voiceURI;
+  select.innerHTML = '';
+  list.forEach(function (v) {
+    const opt = document.createElement('option');
+    opt.value = v.voiceURI;
+    opt.textContent = v.name + '（' + v.lang + '）';
+    select.appendChild(opt);
+  });
+  warn.hidden = jaVoices.length !== 0;
+  let toSelect = prevValue;
+  const has = list.some(function (v) { return v.voiceURI === toSelect; });
+  if (!toSelect || !has) {
+    toSelect = list.length ? list[0].voiceURI : '';
+  }
+  select.value = toSelect;
+  settings.voiceURI = toSelect;
+  saveSettings();
+}
+
+function getSelectedVoice() {
+  const select = document.getElementById('voice-select');
+  const uri = select ? select.value : '';
+  for (let i = 0; i < voicesList.length; i++) {
+    if (voicesList[i].voiceURI === uri) return voicesList[i];
+  }
+  return null;
+}
+
+function initAudioCtxIfNeeded() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) {
+      try { audioCtx = new AC(); } catch (e) { audioCtx = null; }
+    }
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+function scheduleClick(t) {
+  const osc = audioCtx.createOscillator();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(1200, t);
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(0.4, t + 0.005);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(t);
+  osc.stop(t + 0.06);
+}
+
+function playClapper() {
+  const now = audioCtx.currentTime;
+  scheduleClick(now);
+  scheduleClick(now + 0.15);
+  return 220;
+}
+
+function scheduleGong(t, decaySec) {
+  const partials = [1, 2.4, 3.8];
+  partials.forEach(function (mult, i) {
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(110 * mult, t);
+    const gain = audioCtx.createGain();
+    const peak = 0.28 / (i + 1);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.linearRampToValueAtTime(peak, t + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + decaySec);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(t);
+    osc.stop(t + decaySec + 0.05);
+  });
+}
+
+function playBell(text) {
+  const now = audioCtx.currentTime;
+  const slow = text.indexOf('ゆっくり') !== -1;
+  const strikes = slow ? 2 : 3;
+  const interval = slow ? 1.2 : 0.6;
+  let maxEnd = 0;
+  for (let i = 0; i < strikes; i++) {
+    const isLast = i === strikes - 1;
+    const decay = (slow && isLast) ? 3.4 : 2.0;
+    scheduleGong(now + i * interval, decay);
+    const end = i * interval + decay;
+    if (end > maxEnd) maxEnd = end;
+  }
+  return Math.round(maxEnd * 1000);
+}
+
+function playSfxForLine(text, cb) {
+  initAudioCtxIfNeeded();
+  if (!audioCtx) { cb(800); return; }
+  let ms;
+  if (text.indexOf('拍子木') !== -1) {
+    ms = playClapper();
+  } else if (text.indexOf('鐘') !== -1) {
+    ms = playBell(text);
+  } else {
+    ms = 0;
+  }
+  cb(ms > 0 ? ms + 400 : 800);
+}
+
+function startKeepAlive() {
+  stopKeepAlive();
+  if (!hasSpeechSynthesis) return;
+  keepAliveInterval = setInterval(function () {
+    if (speechSynthesis.speaking && !userPaused) {
+      speechSynthesis.pause();
+      speechSynthesis.resume();
+    }
+  }, 10000);
+}
+
+function stopKeepAlive() {
+  if (keepAliveInterval) {
+    clearInterval(keepAliveInterval);
+    keepAliveInterval = null;
+  }
+}
+
+function scheduleAdvance(nextIdx, delayMs) {
+  pendingNextIndex = nextIdx;
+  advanceTimer = setTimeout(function () {
+    advanceTimer = null;
+    pendingNextIndex = null;
+    if (playing && !userPaused) speakLine(nextIdx);
+  }, delayMs);
+}
+
+function speakLine(idx) {
+  if (idx >= SCRIPT.length) {
+    playing = false;
+    userPaused = false;
+    stopKeepAlive();
+    currentIndex = 0;
+    updateProgress();
+    updateButtons();
+    return;
+  }
+  currentIndex = idx;
+  updateProgress();
+  highlightLine(idx);
+  const line = SCRIPT[idx];
+
+  if (line.s === '※') {
+    playSfxForLine(line.t, function (delay) {
+      scheduleAdvance(idx + 1, delay);
+    });
+    return;
+  }
+
+  if (!hasSpeechSynthesis) {
+    const duration = Math.max(line.t.length * 80, 400);
+    scheduleAdvance(idx + 1, duration);
+    return;
+  }
+
+  const utter = new SpeechSynthesisUtterance(line.t);
+  const info = castSettings[line.s] || castSettings['語り'];
+  utter.lang = 'ja-JP';
+  utter.pitch = clamp(info.pitch, 0, 2);
+  utter.rate = clamp(info.rate * masterRate, 0.1, 10);
+  const v = getSelectedVoice();
+  if (v) utter.voice = v;
+  const gen = speechGen;
+  utter.onend = function () {
+    if (gen !== speechGen) return;
+    if (playing && !userPaused) speakLine(idx + 1);
+  };
+  utter.onerror = function () {
+    if (gen !== speechGen) return;
+    if (playing && !userPaused) speakLine(idx + 1);
+  };
+  speechSynthesis.speak(utter);
+}
+
+function updateButtons() {
+  const pauseBtn = document.getElementById('btn-pause');
+  pauseBtn.textContent = userPaused ? '▶再開' : '⏸中入り';
+}
+
+function onPlayClick() {
+  initAudioCtxIfNeeded();
+  if (playing) return;
+  playing = true;
+  userPaused = false;
+  if (hasSpeechSynthesis) { speechGen++; speechSynthesis.cancel(); }
+  startKeepAlive();
+  speakLine(currentIndex);
+  updateButtons();
+}
+
+function onPauseClick() {
+  if (!playing) return;
+  if (!userPaused) {
+    userPaused = true;
+    stopKeepAlive();
+    if (advanceTimer) {
+      clearTimeout(advanceTimer);
+      advanceTimer = null;
+    }
+    if (hasSpeechSynthesis && speechSynthesis.speaking) {
+      speechSynthesis.pause();
+    }
+  } else {
+    userPaused = false;
+    initAudioCtxIfNeeded();
+    startKeepAlive();
+    if (pendingNextIndex !== null) {
+      const idx = pendingNextIndex;
+      pendingNextIndex = null;
+      speakLine(idx);
+    } else if (hasSpeechSynthesis && speechSynthesis.paused) {
+      speechSynthesis.resume();
+    }
+  }
+  updateButtons();
+}
+
+function onStopClick() {
+  playing = false;
+  userPaused = false;
+  currentIndex = 0;
+  if (advanceTimer) { clearTimeout(advanceTimer); advanceTimer = null; }
+  pendingNextIndex = null;
+  if (hasSpeechSynthesis) { speechGen++; speechSynthesis.cancel(); }
+  stopKeepAlive();
+  clearHighlight();
+  updateProgress();
+  updateButtons();
+}
+
+function jumpToLine(idx) {
+  initAudioCtxIfNeeded();
+  playing = true;
+  userPaused = false;
+  if (advanceTimer) { clearTimeout(advanceTimer); advanceTimer = null; }
+  pendingNextIndex = null;
+  if (hasSpeechSynthesis) { speechGen++; speechSynthesis.cancel(); }
+  startKeepAlive();
+  speakLine(idx);
+  updateButtons();
+}
+
+function setupEvents() {
+  document.getElementById('btn-play').addEventListener('click', onPlayClick);
+  document.getElementById('btn-pause').addEventListener('click', onPauseClick);
+  document.getElementById('btn-stop').addEventListener('click', onStopClick);
+
+  document.getElementById('script-view').addEventListener('click', function (e) {
+    const el = e.target.closest('.line');
+    if (!el || el.classList.contains('sfx')) return;
+    const idx = parseInt(el.dataset.index, 10);
+    if (!isNaN(idx)) jumpToLine(idx);
+  });
+
+  document.getElementById('voice-select').addEventListener('change', function (e) {
+    settings.voiceURI = e.target.value;
+    saveSettings();
+  });
+
+  const masterRateInput = document.getElementById('master-rate');
+  masterRateInput.value = String(masterRate);
+  document.getElementById('master-rate-val').textContent = masterRate.toFixed(2);
+  masterRateInput.addEventListener('input', function () {
+    masterRate = parseFloat(masterRateInput.value);
+    document.getElementById('master-rate-val').textContent = masterRate.toFixed(2);
+    settings.masterRate = masterRate;
+    saveSettings();
+  });
+
+  document.getElementById('reset-voice-room').addEventListener('click', function () {
+    Object.keys(CAST).forEach(function (name) {
+      castSettings[name].pitch = CAST[name].pitch;
+      castSettings[name].rate = CAST[name].rate;
+    });
+    persistCastSettings();
+    renderVoiceRoom();
+  });
+
+  document.getElementById('share-x').addEventListener('click', function () {
+    const url = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(SHARE_TEXT) + '&url=' + encodeURIComponent(PAGE_URL);
+    window.open(url, '_blank', 'noopener');
+  });
+
+  document.getElementById('copy-url').addEventListener('click', function () {
+    const btn = document.getElementById('copy-url');
+    const original = btn.textContent;
+    function flash() {
+      btn.textContent = 'コピーしました';
+      setTimeout(function () { btn.textContent = original; }, 1500);
+    }
+    function fallbackCopy() {
+      const ta = document.createElement('textarea');
+      ta.value = PAGE_URL;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      flash();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(PAGE_URL).then(flash, fallbackCopy);
+    } else {
+      fallbackCopy();
+    }
+  });
+
+  window.addEventListener('beforeunload', function () {
+    if (hasSpeechSynthesis) speechSynthesis.cancel();
+  });
+}
+
+function init() {
+  if (!hasSpeechSynthesis) {
+    document.getElementById('no-speech-banner').hidden = false;
+  } else {
+    loadVoices();
+    speechSynthesis.onvoiceschanged = loadVoices;
+  }
+  renderScript();
+  renderVoiceRoom();
+  updateProgress();
+  setupEvents();
+}
+
+init();
+</script>
+</body>
+</html>
