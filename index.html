@@ -275,7 +275,7 @@ footer a{color:var(--gold);}
 </style>
 </head>
 <body>
-<div id="no-speech-banner" class="banner" hidden>このブラウザは声が出せません——目でお楽しみください</div>
+<div id="no-speech-banner" class="banner" hidden>この端末は音声合成が使えません——口演音源が読み込めない場合は文字送りでお楽しみください</div>
 <div class="wrap">
   <header>
     <h1>銀幕亭</h1>
@@ -291,7 +291,7 @@ footer a{color:var(--gold);}
 
   <details class="kojo">
     <summary>口上（この企画について）</summary>
-    <p>活動写真——映画というものが日本に渡ってくるよりずっと前から、寄席の高座では噺家が一人で恋も冒険も怪異も演じ分けておりました。いわば落語は、映画以前の映画でございます。本作「時めぐり」は、現代映画でお馴染みの「同じ一日がぐるぐる回る」というジャンルの型だけを江戸に借り受けたオリジナルの新作落語で、特定の映画作品を翻案したものではございません。古典の名作「時そば」の骨格——数を数えて刻を確かめるという趣向——には深く敬意を払いつつ、まったく別の噺として仕立て直した、いわば換骨奪胎の一席にございます。</p>
+    <p>活動写真——映画というものが日本に渡ってくるよりずっと前から、寄席の高座では噺家が一人で恋も冒険も怪異も演じ分けておりました。いわば落語は、映画以前の映画でございます。本作「時めぐり」は、現代映画でお馴染みの「同じ一日がぐるぐる回る」というジャンルの型だけを江戸に借り受けたオリジナルの新作落語で、特定の映画作品を翻案したものではございません。古典の名作「時そば」の骨格——数を数えて刻を確かめるという趣向——には深く敬意を払いつつ、まったく別の噺として仕立て直した、いわば換骨奪胎の一席にございます。声はAIによる音声合成（事前生成の口演音源、環境によっては端末の読み上げ）にてお届けしております。</p>
   </details>
 
   <details class="voice-room">
@@ -299,7 +299,14 @@ footer a{color:var(--gold);}
     <div class="voice-room-body">
       <p id="voice-warning" class="voice-warning" hidden>日本語の音声が見つかりませんでした。利用できる音声をすべて表示しています。</p>
       <div class="vr-row">
-        <label for="voice-select">声を選ぶ</label>
+        <label for="source-select">音源</label>
+        <select id="source-select">
+          <option value="mp3">口演音源（生成済みの声）</option>
+          <option value="tts">端末合成（Web Speech）</option>
+        </select>
+      </div>
+      <div class="vr-row">
+        <label for="voice-select">声を選ぶ（端末合成用）</label>
         <select id="voice-select"></select>
       </div>
       <div class="vr-row">
@@ -349,6 +356,7 @@ Object.keys(CAST).forEach(function (name) {
   };
 });
 let masterRate = (typeof settings.masterRate === 'number') ? settings.masterRate : 1.0;
+let useMp3 = (settings.useMp3 !== false);
 
 let voicesList = [];
 let audioCtx = null;
@@ -359,6 +367,9 @@ let keepAliveInterval = null;
 let advanceTimer = null;
 let pendingNextIndex = null;
 let speechGen = 0;
+const VOICE_BASE = 'assets/voice/';
+let currentAudio = null;
+const preloadCache = {};
 
 function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
 
@@ -657,6 +668,47 @@ function speakLine(idx) {
     return;
   }
 
+  if (useMp3) { playMp3Line(idx); return; }
+  speakLineTts(idx);
+}
+
+function mp3Src(i) { return VOICE_BASE + String(i).padStart(3, '0') + '.mp3'; }
+
+function preloadMp3(i) {
+  if (!useMp3 || i >= SCRIPT.length) return;
+  if (SCRIPT[i].s === '※') return;
+  const k = String(i);
+  if (preloadCache[k]) return;
+  const a = new Audio(mp3Src(i));
+  a.preload = 'auto';
+  preloadCache[k] = a;
+}
+
+function playMp3Line(idx) {
+  const gen = speechGen;
+  const a = new Audio(mp3Src(idx));
+  a.playbackRate = clamp(masterRate, 0.5, 2);
+  currentAudio = a;
+  let fellBack = false;
+  function fallback() {
+    if (gen !== speechGen || fellBack) return;
+    fellBack = true;
+    currentAudio = null;
+    speakLineTts(idx);
+  }
+  a.onended = function () {
+    if (gen !== speechGen) return;
+    currentAudio = null;
+    if (playing && !userPaused) speakLine(idx + 1);
+  };
+  a.onerror = fallback;
+  a.play().then(function () {
+    preloadMp3(idx + 1); preloadMp3(idx + 2);
+  }).catch(fallback);
+}
+
+function speakLineTts(idx) {
+  const line = SCRIPT[idx];
   if (!hasSpeechSynthesis) {
     const duration = Math.max(line.t.length * 80, 400);
     scheduleAdvance(idx + 1, duration);
@@ -692,7 +744,9 @@ function onPlayClick() {
   if (playing) return;
   playing = true;
   userPaused = false;
-  if (hasSpeechSynthesis) { speechGen++; speechSynthesis.cancel(); }
+  speechGen++;
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  if (hasSpeechSynthesis) speechSynthesis.cancel();
   startKeepAlive();
   speakLine(currentIndex);
   updateButtons();
@@ -707,6 +761,9 @@ function onPauseClick() {
       clearTimeout(advanceTimer);
       advanceTimer = null;
     }
+    if (currentAudio && !currentAudio.paused) {
+      currentAudio.pause();
+    }
     if (hasSpeechSynthesis && speechSynthesis.speaking) {
       speechSynthesis.pause();
     }
@@ -718,6 +775,8 @@ function onPauseClick() {
       const idx = pendingNextIndex;
       pendingNextIndex = null;
       speakLine(idx);
+    } else if (currentAudio && currentAudio.paused) {
+      currentAudio.play();
     } else if (hasSpeechSynthesis && speechSynthesis.paused) {
       speechSynthesis.resume();
     }
@@ -731,7 +790,9 @@ function onStopClick() {
   currentIndex = 0;
   if (advanceTimer) { clearTimeout(advanceTimer); advanceTimer = null; }
   pendingNextIndex = null;
-  if (hasSpeechSynthesis) { speechGen++; speechSynthesis.cancel(); }
+  speechGen++;
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  if (hasSpeechSynthesis) speechSynthesis.cancel();
   stopKeepAlive();
   clearHighlight();
   updateProgress();
@@ -744,7 +805,9 @@ function jumpToLine(idx) {
   userPaused = false;
   if (advanceTimer) { clearTimeout(advanceTimer); advanceTimer = null; }
   pendingNextIndex = null;
-  if (hasSpeechSynthesis) { speechGen++; speechSynthesis.cancel(); }
+  speechGen++;
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  if (hasSpeechSynthesis) speechSynthesis.cancel();
   startKeepAlive();
   speakLine(idx);
   updateButtons();
@@ -762,6 +825,14 @@ function setupEvents() {
     if (!isNaN(idx)) jumpToLine(idx);
   });
 
+  const srcSel = document.getElementById('source-select');
+  srcSel.value = useMp3 ? 'mp3' : 'tts';
+  srcSel.addEventListener('change', function () {
+    useMp3 = (srcSel.value === 'mp3');
+    settings.useMp3 = useMp3;
+    saveSettings();
+  });
+
   document.getElementById('voice-select').addEventListener('change', function (e) {
     settings.voiceURI = e.target.value;
     saveSettings();
@@ -775,6 +846,7 @@ function setupEvents() {
     document.getElementById('master-rate-val').textContent = masterRate.toFixed(2);
     settings.masterRate = masterRate;
     saveSettings();
+    if (currentAudio) { currentAudio.playbackRate = clamp(masterRate, 0.5, 2); }
   });
 
   document.getElementById('reset-voice-room').addEventListener('click', function () {
