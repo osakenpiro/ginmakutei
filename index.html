@@ -187,6 +187,7 @@ details[open] summary::before{content:"▼ ";}
 .vr-row{display:flex;align-items:center;gap:10px;margin:10px 0;flex-wrap:wrap;}
 .vr-row label{min-width:140px;font-size:0.9rem;color:var(--ink-dim);}
 .vr-row select, .vr-row input[type=range]{flex:1;min-width:120px;}
+.vr-note{font-size:0.8rem;color:var(--ink-dim);margin:4px 0 10px;}
 .voice-room-content{margin-top:8px;border-top:1px solid var(--panel-line);padding-top:8px;}
 .voice-row{
   display:flex;
@@ -313,6 +314,11 @@ footer a{color:var(--gold);}
         <label for="master-rate">マスター速度（<span id="master-rate-val">1.00</span>）</label>
         <input type="range" id="master-rate" min="0.6" max="1.4" step="0.01" value="1">
       </div>
+      <div class="vr-row">
+        <label for="enjiwake">演じ分け（<span id="enjiwake-val">1.00</span>）</label>
+        <input type="range" id="enjiwake" min="0" max="1" step="0.01" value="1">
+      </div>
+      <p class="vr-note">1.0＝ラジオドラマ調（キャラ別の声）／0.3あたり＝独演（一人語り・本寸法）。いまは端末合成（Web Speech）で有効。独演の口演音源は次の口演生成で対応予定。</p>
       <div id="voice-room-content" class="voice-room-content"></div>
       <button id="reset-voice-room" type="button">初期値に戻す</button>
     </div>
@@ -339,6 +345,17 @@ footer a{color:var(--gold);}
 const CAST = {"語り": {"pitch": 1.0, "rate": 1.0, "color": "#c9b18c"}, "清兵衛": {"pitch": 0.7, "rate": 0.95, "color": "#e8a03e"}, "八五郎": {"pitch": 1.3, "rate": 1.12, "color": "#7fc4e8"}, "木戸番": {"pitch": 0.85, "rate": 0.8, "color": "#a8d08d"}, "二人": {"pitch": 1.05, "rate": 1.1, "color": "#e87f9c"}};
 const SCRIPT = [{"s":"語り","t":"え〜、ようこそのお運びで。銀幕亭、開演でございます。"},{"s":"語り","t":"活動写真——映画てえものがまだ無かった時分、江戸の連中は寄席で映画を観ておりました。噺家が一人、扇子一本で、恋愛ものから怪獣ものまでやっちまう。"},{"s":"語り","t":"本日はその逆輸入でございます。映画でお馴染みの「同じ一日がぐるぐる回る」——あれを、江戸に持って参りました。"},{"s":"語り","t":"もっとも皆さま、覚えがございましょう。二度寝をすると、さっきの夢の続きが始まる。あれが人類最初の繰り返しもの、でございます。"},{"s":"語り","t":"ご存じない方のために申し上げますと、江戸の夜鳴きそばは一杯十六文、真夜中の鐘は九つと、相場が決まっております。"},{"s":"※","t":"（拍子木——チョーン）"},{"s":"語り","t":"ところは江戸、夜も更けて。夜鳴きそばの屋台をかつぐ清兵衛さん、今夜も辻に灯りをともしております。"},{"s":"清兵衛","t":"さぁて、冷えてきやがった。こういう晩ぁ、そばが売れる。"},{"s":"※","t":"（遠くで鐘の音。ゴーン、ゴーン——九つ）"},{"s":"清兵衛","t":"九つか。あとひと回りしたら帰るとするか。"},{"s":"八五郎","t":"おう親方、やってるかい。熱いのを一枚、しっぽくで頼まぁ。"},{"s":"清兵衛","t":"へい、毎度。……あいよ、お待ち。"},{"s":"八五郎","t":"ずずっ……うめえ！　汁が体に沁みらぁ。んじゃ勘定だ。ひい、ふう、みい、よう……"},{"s":"語り","t":"八五郎さん、十六文をきっちり払って、鼻歌まじりに帰ってゆきます。"},{"s":"清兵衛","t":"ありがとうござい。……さて、そろそろ仕舞うか。"},{"s":"※","t":"（犬の遠吠え。また鐘の音——九つ）"},{"s":"清兵衛","t":"おや、また九つだ。鐘撞きの爺さん、居眠りして撞き直したか。"},{"s":"八五郎","t":"おう親方、やってるかい。熱いのを一枚、しっぽくで頼まぁ。"},{"s":"清兵衛","t":"へい、毎度……って、おめえさん、たった今食ったろ。"},{"s":"八五郎","t":"なにを言ってやんでえ。今夜はまだ一杯も手繰っちゃいねえよ。"},{"s":"清兵衛","t":"冗談言っちゃいけねえ。ほら、おめえの丼が……あれ？　洗った覚えはねえのに、きれいなもんだ。"},{"s":"八五郎","t":"親方、疲れてるんだよ。いいから一枚。"},{"s":"清兵衛","t":"……へ、へい。お待ち。"},{"s":"八五郎","t":"ずずっ……うめえ！　汁が体に沁みらぁ。"},{"s":"清兵衛","t":"（こいつぁおかしい。啜り方から台詞まで、寸分違わねえ）"},{"s":"八五郎","t":"んじゃ勘定だ。ひい、ふう、みい——"},{"s":"清兵衛","t":"よう、いつ、むう、なな、や、だろ。先に言ってやらぁ。"},{"s":"八五郎","t":"な、なんで俺の数え方がわかるんだ。"},{"s":"清兵衛","t":"二度目だからだよ！"},{"s":"語り","t":"そうして三度目の九つ。清兵衛さん、もう確信いたしました。夜が、明けない。"},{"s":"清兵衛","t":"よし、こうなったら屋台をたたんで長屋に帰って、布団かぶって寝ちまえば——"},{"s":"※","t":"（鐘の音——九つ）"},{"s":"清兵衛","t":"……気がつきゃ辻に立って、屋台をかついでる！　なんでだよ！"},{"s":"清兵衛","t":"なら今夜はそばを打たねえ。売り物がなけりゃ、あいつも来ようが——"},{"s":"八五郎","t":"おう親方、やってるかい。"},{"s":"清兵衛","t":"来やがった！　屋台も出してねえのに、どっから湧いた！"},{"s":"八五郎","t":"いや、匂いがしたもんだからよ。"},{"s":"清兵衛","t":"幻の匂いを嗅ぐな！"},{"s":"語り","t":"こうなれば手を替え品を替え。次の九つ、清兵衛さん、注文される前に丼を突き出します。"},{"s":"清兵衛","t":"ほらよ、今夜は花巻だ！　しっぽくとは言わせねえ！"},{"s":"八五郎","t":"おっ、悪いね親方。……ずずっ、うめえ！　汁が体に沁みらぁ。"},{"s":"清兵衛","t":"種を替えても、そこは変わらねえのか！"},{"s":"八五郎","t":"？　なんの話でえ。"},{"s":"清兵衛","t":"八っつぁん、落ち着いて聞いてくれ。おめえと俺ぁ、同じ晩をもう何べんもぐるぐる回ってるんだ。"},{"s":"八五郎","t":"……親方、そばの湯気ぇ吸いすぎだよ。明日にでも医者に診てもらいな。"},{"s":"清兵衛","t":"その明日が来ねえから相談してんだよ！"},{"s":"語り","t":"信じてもらえないのもお約束でございます。ならばと清兵衛さん、一計を案じました。"},{"s":"清兵衛","t":"そうだ、先に銭をもらっちまえばいい。おい八っつぁん、うちは今夜から先払いだ。十六文、耳を揃えて食う前に！"},{"s":"八五郎","t":"へえ、変わった商いだね。ひい、ふう、みい……"},{"s":"※","t":"（鐘の音——九つ）"},{"s":"清兵衛","t":"早え早え早え！　まだ「みい」までしか数えてねえのに晩が締まった！　却って悪くなってるじゃねえか！"},{"s":"語り","t":"橋を渡って逆へ逆へと歩いてみても、戻ってくるのは元の辻。夜という夜の、袋小路でございます。"},{"s":"清兵衛","t":"おい八っつぁん、今なん時だい。"},{"s":"八五郎","t":"へえ、九つで。"},{"s":"清兵衛","t":"いつ聞いても九つだ。……夜の帳尻が、合ってねえ。"},{"s":"語り","t":"ふと清兵衛さん、屋台の帳面をつけてみます。"},{"s":"清兵衛","t":"今夜の売上……一杯十六文が一枚。数えて、ひい、ふう、みい……十五文。おい、一文足りねえ。"},{"s":"清兵衛","t":"……待てよ。思い出した。一番はじめの晩だ。こいつ、勘定の途中で妙なことを聞きやがった。"},{"s":"八五郎","t":"（回想）ひい、ふう、みい、よう、いつ、むう、なな、や——親方、今なん時だい？"},{"s":"清兵衛","t":"（回想）へえ、九つで。"},{"s":"八五郎","t":"（回想）とお、じゅういち、じゅうに、じゅうさん……"},{"s":"清兵衛","t":"あん時だ！　俺が「九つ」って答えたもんだから、勘定に紛れて一文飛んだ！"},{"s":"清兵衛","t":"銭の勘定と時の勘定、江戸の夜はどっちも鐘で締める。一文欠けた分だけ夜の締まりがゆるんで、九つのところでつっかえてやがるんだ。"},{"s":"清兵衛","t":"……夜ってのは、明けるか明けねえかの二つっきりじゃねえんだなあ。締まりが悪いと、こうして半端に残る。"},{"s":"語り","t":"理屈が通ったかどうかは存じませんが、当人は大きくうなずいております。さあ、次の九つ。清兵衛さん、待ち構えております。"},{"s":"※","t":"（鐘の音——九つ）"},{"s":"八五郎","t":"おう親方、やってるかい。熱いのを——"},{"s":"清兵衛","t":"しっぽくだろ。とっくに茹だってらぁ。食え食え。"},{"s":"八五郎","t":"気味が悪いくれえ話が早えな。……ずずっ、うめえ！　んじゃ勘定だ。ひい、ふう、みい、よう、いつ、むう、なな、や——親方、今なん時でえ？"},{"s":"清兵衛","t":"その手は食わねえ！　続きを数えな。「や」の次！"},{"s":"八五郎","t":"え？　……ここのつ？"},{"s":"清兵衛","t":"俺に言わせず、おめえが言うんだ。それから？"},{"s":"八五郎","t":"とお。"},{"s":"※","t":"（鐘の音が、ゆっくり——十）"},{"s":"清兵衛","t":"鳴った……十だ！　鐘が十を打ちやがった！"},{"s":"語り","t":"東の空がじわりと白んで、烏がカア。長い長い夜が、ようやく明けたのでございます。"},{"s":"八五郎","t":"なんでえ、朝じゃねえか。……おかしいな、一杯しか手繰ってねえのに、妙に腹がくちい。"},{"s":"清兵衛","t":"そりゃ九晩分だ。……いや、こっちの話だ。ほら、今朝は釣りを一文おまけしとくよ。"},{"s":"八五郎","t":"おや、多いよ親方。"},{"s":"清兵衛","t":"取っときな。夜の潤滑油ってやつだ。また止まられちゃ、かなわねえ。"},{"s":"木戸番","t":"お早うござい。いい朝だねえ。……時に親方、いま、なん時だい？"},{"s":"二人","t":"聞くなーッ！！"},{"s":"※","t":"（拍子木——チョーン。お後がよろしいようで）"}];
 
+// v1.2 間Float — 台本とは分離した演出レイヤー。行idxの「後」に置く間（秒）
+const PAUSES = {4:0.6, 9:0.4, 12:0.3, 24:0.8, 28:1.0, 29:1.2, 37:0.8, 45:0.7, 50:0.8, 54:1.2, 56:1.0, 57:0.6, 58:0.4, 59:0.4, 60:0.5, 61:0.8, 62:0.7, 63:1.5, 69:0.5, 70:1.0, 71:0.4, 72:1.5, 74:0.8, 79:0.6, 80:1.2, 81:0.8};
+// v1.2 テンポ配分 — マクラ軽快→ループ加速→種明かし溜め→サゲゆったり
+const SECTIONS = [
+  {from:0,  to:5,  tempo:1.06},
+  {from:6,  to:15, tempo:1.02},
+  {from:16, to:50, tempo:1.04},
+  {from:51, to:64, tempo:0.94},
+  {from:65, to:79, tempo:1.0},
+  {from:80, to:82, tempo:0.95}
+];
 const STORAGE_KEY = 'ginmakutei-v1';
 const SHARE_TEXT = "銀幕亭『時めぐり』——映画がむかし、落語だったら。ブラウザが一席演じます";
 const PAGE_URL = "https://osakenpiro.github.io/ginmakutei/";
@@ -357,6 +374,8 @@ Object.keys(CAST).forEach(function (name) {
 });
 let masterRate = (typeof settings.masterRate === 'number') ? settings.masterRate : 1.0;
 let useMp3 = (settings.useMp3 !== false);
+// v1.2 演じ分けFloat: 1.0=ラジオドラマ調（キャラ全開）〜 0.0=完全一人語り（独演）
+let enjiwake = (typeof settings.enjiwake === 'number') ? settings.enjiwake : 1.0;
 
 let voicesList = [];
 let audioCtx = null;
@@ -372,6 +391,28 @@ let currentAudio = null;
 const preloadCache = {};
 
 function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
+
+function sectionTempo(idx) {
+  for (let i = 0; i < SECTIONS.length; i++) {
+    if (idx >= SECTIONS[i].from && idx <= SECTIONS[i].to) return SECTIONS[i].tempo;
+  }
+  return 1.0;
+}
+
+function pauseAfter(idx) {
+  const p = PAUSES[idx];
+  return (typeof p === 'number' && p > 0) ? Math.round(p * 1000 / clamp(masterRate, 0.5, 2)) : 0;
+}
+
+function blendCast(idx) {
+  const line = SCRIPT[idx];
+  const base = castSettings[line.s] || castSettings['語り'];
+  const k = clamp(enjiwake, 0, 1);
+  return {
+    pitch: 1.0 + (base.pitch - 1.0) * k,
+    rate:  1.0 + (base.rate  - 1.0) * k
+  };
+}
 
 function loadSettings() {
   try {
@@ -687,8 +728,9 @@ function preloadMp3(i) {
 function playMp3Line(idx) {
   const gen = speechGen;
   const a = new Audio(mp3Src(idx));
-  a.playbackRate = clamp(masterRate, 0.5, 2);
+  a.playbackRate = clamp(masterRate * sectionTempo(idx), 0.5, 2);
   currentAudio = a;
+  // v1.2: 演じ分けFloatはWeb Speech層のみ。独演口演mp3（assets/voice-dokuen/）生成後にここで分岐予定
   let fellBack = false;
   function fallback() {
     if (gen !== speechGen || fellBack) return;
@@ -699,7 +741,10 @@ function playMp3Line(idx) {
   a.onended = function () {
     if (gen !== speechGen) return;
     currentAudio = null;
-    if (playing && !userPaused) speakLine(idx + 1);
+    if (playing && !userPaused) {
+      const ma = pauseAfter(idx);
+      if (ma > 0) { scheduleAdvance(idx + 1, ma); } else { speakLine(idx + 1); }
+    }
   };
   a.onerror = fallback;
   a.play().then(function () {
@@ -707,25 +752,31 @@ function playMp3Line(idx) {
   }).catch(fallback);
 }
 
+const YOMI = [['寄席','よせ'],['噺家','はなしか'],['なん時','なんどき'],['九つ','ここのつ'],['十六文','じゅうろくもん'],['十五文','じゅうごもん'],['一文','いちもん'],['九晩','ここのばん']];
+function yomi(t) { for (const [a, b] of YOMI) t = t.split(a).join(b); return t; }
+
 function speakLineTts(idx) {
   const line = SCRIPT[idx];
   if (!hasSpeechSynthesis) {
-    const duration = Math.max(line.t.length * 80, 400);
+    const duration = Math.max(line.t.length * 80, 400) + pauseAfter(idx);
     scheduleAdvance(idx + 1, duration);
     return;
   }
 
-  const utter = new SpeechSynthesisUtterance(line.t);
-  const info = castSettings[line.s] || castSettings['語り'];
+  const utter = new SpeechSynthesisUtterance(yomi(line.t));
+  const info = blendCast(idx);
   utter.lang = 'ja-JP';
   utter.pitch = clamp(info.pitch, 0, 2);
-  utter.rate = clamp(info.rate * masterRate, 0.1, 10);
+  utter.rate = clamp(info.rate * masterRate * sectionTempo(idx), 0.1, 10);
   const v = getSelectedVoice();
   if (v) utter.voice = v;
   const gen = speechGen;
   utter.onend = function () {
     if (gen !== speechGen) return;
-    if (playing && !userPaused) speakLine(idx + 1);
+    if (playing && !userPaused) {
+      const ma = pauseAfter(idx);
+      if (ma > 0) { scheduleAdvance(idx + 1, ma); } else { speakLine(idx + 1); }
+    }
   };
   utter.onerror = function () {
     if (gen !== speechGen) return;
@@ -847,6 +898,16 @@ function setupEvents() {
     settings.masterRate = masterRate;
     saveSettings();
     if (currentAudio) { currentAudio.playbackRate = clamp(masterRate, 0.5, 2); }
+  });
+
+  const enjiwakeInput = document.getElementById('enjiwake');
+  enjiwakeInput.value = String(enjiwake);
+  document.getElementById('enjiwake-val').textContent = enjiwake.toFixed(2);
+  enjiwakeInput.addEventListener('input', function () {
+    enjiwake = parseFloat(enjiwakeInput.value);
+    document.getElementById('enjiwake-val').textContent = enjiwake.toFixed(2);
+    settings.enjiwake = enjiwake;
+    saveSettings();
   });
 
   document.getElementById('reset-voice-room').addEventListener('click', function () {
